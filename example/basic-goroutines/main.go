@@ -1,4 +1,4 @@
-package main
+package basic_goroutines
 
 import (
 	"context"

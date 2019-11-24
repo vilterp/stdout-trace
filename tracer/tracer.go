@@ -33,23 +33,23 @@ func StartSpan(ctx context.Context, operation string) (*Span, context.Context) {
 }
 
 func (t *Tracer) StartSpan(ctx context.Context, operation string) (*Span, context.Context) {
-	globalTracer.mu.Lock()
-	defer globalTracer.mu.Unlock()
+	t.mu.Lock()
+	defer t.mu.Unlock()
 
 	parentID, ok := ctx.Value(spanIDKey{}).(int)
 	if !ok {
 		parentID = -1
 	}
 
-	spanID := globalTracer.nextID
+	spanID := t.nextID
 	ctx = context.WithValue(ctx, spanIDKey{}, spanID)
 	ctx = context.WithValue(ctx, parentIDKey{}, parentID)
 
-	globalTracer.nextID += 1
+	t.nextID += 1
 
 	now := time.Now()
 
-	globalTracer.logEvent(&TraceEvent{
+	t.logEvent(&TraceEvent{
 		TraceEvent: startSpanEvt,
 		Timestamp:  now,
 		SpanID:     spanID,
@@ -80,6 +80,8 @@ type LogLine struct {
 	time time.Time
 	line string
 }
+
+// TODO: remove references to globaltracer
 
 func (s *Span) Log(line string) {
 	now := time.Now()
@@ -119,10 +121,14 @@ type TraceEvent struct {
 	Operation  string    `json:"op,omitempty"`
 }
 
-func (t *Tracer) logEvent(e *TraceEvent) {
+func (e *TraceEvent) ToJSON() string {
 	bytes, err := json.Marshal(e)
 	if err != nil {
 		panic(err) // TODO: something else
 	}
-	fmt.Println(string(bytes))
+	return string(bytes)
+}
+
+func (t *Tracer) logEvent(e *TraceEvent) {
+	fmt.Println(e.ToJSON())
 }
