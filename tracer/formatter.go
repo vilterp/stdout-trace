@@ -46,7 +46,7 @@ func (f *Formatter) Handle(evt *TraceEvent) {
 func (f *Formatter) logLeftTrack(evtSpanID int, parentID int, evt string) {
 	parentToLeft := false
 	printedNode := false
-	for idx, spanID := range f.spanChannels {
+	for _, spanID := range f.spanChannels {
 		if spanID == -1 {
 			if parentToLeft && !printedNode {
 				fmt.Print("──")
