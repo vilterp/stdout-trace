@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
 func main() {
@@ -28,13 +30,13 @@ func main() {
 }
 
 type Server struct {
-	mux       *http.ServeMux
-	socketsMu sync.Mutex
-	sockets   []Socket
-}
+	mux *http.ServeMux
 
-type Socket interface {
-	Write(line string) error
+	socketsMu sync.Mutex
+	sockets   []*websocket.Conn
+
+	messagesMu sync.Mutex
+	messages   []string
 }
 
 func NewServer() *Server {
@@ -56,42 +58,69 @@ func (s *Server) serveStatic(w http.ResponseWriter, req *http.Request) {
 	http.FileServer(http.Dir("build")).ServeHTTP(w, req)
 }
 
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
 func (s *Server) serveWS(w http.ResponseWriter, req *http.Request) {
+	conn, err := upgrader.Upgrade(w, req, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	s.addSocket(conn)
+
+	s.catchUp(conn)
+
+	select {} // block
+}
+
+func (s *Server) catchUp(conn *websocket.Conn) {
+	s.messagesMu.Lock()
+	defer s.messagesMu.Unlock()
+
+	for _, msg := range s.messages {
+		if err := conn.WriteMessage(websocket.TextMessage, []byte(msg)); err != nil {
+			log.Println("failed to catch up socket: ", err)
+		}
+	}
+}
+
+func (s *Server) addSocket(socket *websocket.Conn) {
 	s.socketsMu.Lock()
 	defer s.socketsMu.Unlock()
 
-	s.sockets = append(s.sockets, newSocket(w))
+	s.sockets = append(s.sockets, socket)
+
 }
 
-// ???
-type httpSocket struct {
-	w http.ResponseWriter
-}
+// TODO: consider using a file instead of keeping this all in memory
+func (s *Server) appendMessage(line string) {
+	s.messagesMu.Lock()
+	defer s.messagesMu.Unlock()
 
-func (s *httpSocket) Write(line string) error {
-	_, err := s.w.Write([]byte(line))
-	return err
-}
-
-func newSocket(w http.ResponseWriter) *httpSocket {
-	return &httpSocket{
-		w: w,
-	}
+	s.messages = append(s.messages, line)
 }
 
 func (s *Server) processStdin() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
+
+		s.appendMessage(line)
 		s.pushToSockets(line)
-		fmt.Print(line)
+		fmt.Println(line)
 	}
 }
 
 func (s *Server) pushToSockets(line string) {
 	// even parse it?
 	for idx, socket := range s.sockets {
-		if err := socket.Write(line); err != nil {
+		if err := socket.WriteMessage(websocket.TextMessage, []byte(line)); err != nil {
 			log.Println("failed to write to socket at idx", idx)
 		}
 	}
