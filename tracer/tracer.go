@@ -36,7 +36,7 @@ func (t *Tracer) StartSpan(ctx context.Context, operation string) (*Span, contex
 	globalTracer.mu.Lock()
 	defer globalTracer.mu.Unlock()
 
-	parentID, ok := ctx.Value(parentIDKey{}).(int)
+	parentID, ok := ctx.Value(spanIDKey{}).(int)
 	if !ok {
 		parentID = -1
 	}

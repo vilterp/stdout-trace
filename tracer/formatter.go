@@ -23,17 +23,17 @@ func (f *Formatter) Handle(evt *TraceEvent) {
 			parentID:  evt.ParentID,
 		}
 		f.addSpanToChannels(evt.SpanID)
-		f.logLeftTrack(evt.SpanID)
+		f.logLeftTrack(evt.SpanID, evt.ParentID, startSpanEvt)
 		fmt.Print("\t")
 		fmt.Printf("start %d: %s\n", evt.SpanID, evt.Operation)
 	case logEvt:
-		f.logLeftTrack(evt.SpanID)
+		f.logLeftTrack(evt.SpanID, -1, logEvt)
 		fmt.Print("\t")
 		fmt.Println(evt.LogLine)
 	case finishSpanEvt:
 		span := f.openSpans[evt.SpanID]
 		span.finishedAt = &evt.Timestamp
-		f.logLeftTrack(evt.SpanID)
+		f.logLeftTrack(evt.SpanID, -1, finishSpanEvt)
 		fmt.Print("\t")
 		duration := span.finishedAt.Sub(span.startedAt)
 		fmt.Printf("finish %d: %s (%v)\n", evt.SpanID, span.operation, duration)
@@ -43,17 +43,41 @@ func (f *Formatter) Handle(evt *TraceEvent) {
 	//fmt.Println(f.openSpans)
 }
 
-func (f *Formatter) logLeftTrack(evtSpanID int) {
-	for _, spanID := range f.spanChannels {
+func (f *Formatter) logLeftTrack(evtSpanID int, parentID int, evt string) {
+	parentToLeft := false
+	for idx, spanID := range f.spanChannels {
 		if spanID == -1 {
-			fmt.Print("  ")
+			if parentToLeft {
+				fmt.Print("──")
+			} else {
+				fmt.Print("  ")
+			}
 			continue
 		}
 		if spanID == evtSpanID {
-			fmt.Print("X ")
+			switch evt {
+			case logEvt:
+				fmt.Print("*")
+			case startSpanEvt:
+				fmt.Print("O")
+			case finishSpanEvt:
+				fmt.Print("X")
+			}
+			if idx < len(f.spanChannels)-1 && parentToLeft {
+				fmt.Print("─")
+			} else {
+				fmt.Print(" ")
+			}
 			continue
 		}
-		fmt.Print("| ")
+		if spanID == parentID && evt == startSpanEvt {
+			fmt.Print("├─")
+			parentToLeft = true
+		} else if parentToLeft {
+			fmt.Print("┼─")
+		} else {
+			fmt.Print("│ ")
+		}
 	}
 }
 
