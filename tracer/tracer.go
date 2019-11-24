@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 )
 
 type Tracer struct {
+	mu     sync.Mutex
 	nextID int
 }
 
@@ -20,7 +22,20 @@ var globalTracer = NewTracer()
 type spanIDKey struct{}
 type parentIDKey struct{}
 
+const (
+	startSpanEvt  = "start_span"
+	logEvt        = "log"
+	finishSpanEvt = "finish_span"
+)
+
 func StartSpan(ctx context.Context, operation string) (*Span, context.Context) {
+	return globalTracer.StartSpan(ctx, operation)
+}
+
+func (t *Tracer) StartSpan(ctx context.Context, operation string) (*Span, context.Context) {
+	globalTracer.mu.Lock()
+	defer globalTracer.mu.Unlock()
+
 	parentID, ok := ctx.Value(parentIDKey{}).(int)
 	if !ok {
 		parentID = -1
@@ -35,9 +50,10 @@ func StartSpan(ctx context.Context, operation string) (*Span, context.Context) {
 	now := time.Now()
 
 	globalTracer.logEvent(&TraceEvent{
-		TraceEvent: "start_span",
+		TraceEvent: startSpanEvt,
 		Timestamp:  now,
 		SpanID:     spanID,
+		ParentID:   parentID,
 		Operation:  operation,
 	})
 
@@ -74,7 +90,7 @@ func (s *Span) Log(line string) {
 	})
 
 	globalTracer.logEvent(&TraceEvent{
-		TraceEvent: "log",
+		TraceEvent: logEvt,
 		SpanID:     s.id,
 		Timestamp:  now,
 		LogLine:    line,
@@ -86,7 +102,7 @@ func (s *Span) Finish() {
 	s.finishedAt = &now
 
 	globalTracer.logEvent(&TraceEvent{
-		TraceEvent: "finish_span",
+		TraceEvent: finishSpanEvt,
 		Timestamp:  now,
 		SpanID:     s.id,
 	})
@@ -97,6 +113,7 @@ func (s *Span) Finish() {
 type TraceEvent struct {
 	TraceEvent string    `json:"evt"`
 	SpanID     int       `json:"id"`
+	ParentID   int       `json:"parent_id,omitempty"`
 	Timestamp  time.Time `json:"ts"`
 	LogLine    string    `json:"line,omitempty"`
 	Operation  string    `json:"op,omitempty"`

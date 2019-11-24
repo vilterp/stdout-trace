@@ -13,30 +13,30 @@ func main() {
 	span, ctx := tracer.StartSpan(ctx, "main")
 	defer span.Finish()
 
-	a(ctx)
 	go b(ctx)
 	time.Sleep(2 * time.Second)
 	go c(ctx)
+	a(ctx)
 }
 
 func a(ctx context.Context) {
 	span, _ := tracer.StartSpan(ctx, "a")
 	defer span.Finish()
 
-	span.Log("begin")
+	span.Log("AAA begin")
 	time.Sleep(5 * time.Second)
-	span.Log("sleep moar")
+	span.Log("AAA sleep moar")
 	time.Sleep(5 * time.Second)
-	span.Log("done")
+	span.Log("AAA done")
 }
 
 func b(ctx context.Context) {
 	span, _ := tracer.StartSpan(ctx, "b")
 	defer span.Finish()
 
-	span.Log("sup")
+	span.Log("BBB sup")
 	time.Sleep(1 * time.Second)
-	span.Log("yo")
+	span.Log("BBB yo")
 }
 
 func c(ctx context.Context) {
@@ -44,7 +44,7 @@ func c(ctx context.Context) {
 	defer span.Finish()
 
 	time.Sleep(1 * time.Second)
-	span.Log("blurp")
+	span.Log("CCC blurp")
 	time.Sleep(2 * time.Second)
-	span.Log("durp")
+	span.Log("CCC durp")
 }
