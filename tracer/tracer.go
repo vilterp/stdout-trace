@@ -111,7 +111,7 @@ func (s *Span) Finish() {
 // Event
 
 type TraceEvent struct {
-	TraceEvent string    `json:"trace_evt"`
+	TraceEvent string    `json:"evt"`
 	SpanID     int       `json:"id"`
 	ParentID   int       `json:"parent_id,omitempty"`
 	Timestamp  time.Time `json:"ts"`

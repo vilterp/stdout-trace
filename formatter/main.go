@@ -15,9 +15,11 @@ func main() {
 	for scanner.Scan() {
 		text := scanner.Text()
 		evt := &tracer.TraceEvent{}
-		if err := json.Unmarshal([]byte(text), evt); err != nil {
-			panic(err)
+		err := json.Unmarshal([]byte(text), evt)
+		if err != nil {
+			continue
+		} else {
+			f.Handle(evt)
 		}
-		f.Handle(evt)
 	}
 }
