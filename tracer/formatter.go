@@ -65,11 +65,7 @@ func (f *Formatter) logLeftTrack(evtSpanID int, parentID int, evt string) {
 			case finishSpanEvt:
 				fmt.Print("X")
 			}
-			if idx < len(f.spanChannels)-1 && parentToLeft {
-				fmt.Print("─")
-			} else {
-				fmt.Print(" ")
-			}
+			fmt.Print(" ")
 			continue
 		}
 		if spanID == parentID && evt == startSpanEvt {

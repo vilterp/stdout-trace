@@ -17,7 +17,6 @@ func main() {
 		evt := &tracer.TraceEvent{}
 		err := json.Unmarshal([]byte(text), evt)
 		if err != nil {
-			continue
 		} else {
 			f.Handle(evt)
 		}
