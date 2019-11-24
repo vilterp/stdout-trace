@@ -25,7 +25,7 @@ func (f *Formatter) Handle(evt *TraceEvent) {
 		f.addSpanToChannels(evt.SpanID)
 		f.logLeftTrack(evt.SpanID, evt.ParentID, startSpanEvt)
 		fmt.Print("\t")
-		fmt.Printf("start %d: %s\n", evt.SpanID, evt.Operation)
+		fmt.Printf("start: %s\n", evt.Operation)
 	case logEvt:
 		f.logLeftTrack(evt.SpanID, -1, logEvt)
 		fmt.Print("\t")
@@ -36,7 +36,7 @@ func (f *Formatter) Handle(evt *TraceEvent) {
 		f.logLeftTrack(evt.SpanID, -1, finishSpanEvt)
 		fmt.Print("\t")
 		duration := span.finishedAt.Sub(span.startedAt)
-		fmt.Printf("finish %d: %s (%v)\n", evt.SpanID, span.operation, duration)
+		fmt.Printf("finish: %s (%v)\n", span.operation, duration)
 		f.removeFromTrack(evt.SpanID)
 	}
 	//fmt.Println(f.spanChannels)
@@ -71,7 +71,7 @@ func (f *Formatter) logLeftTrack(evtSpanID int, parentID int, evt string) {
 		if spanID == parentID && evt == startSpanEvt {
 			fmt.Print("├─")
 			parentToLeft = true
-		} else if parentToLeft {
+		} else if parentToLeft && !printedNode {
 			fmt.Print("┼─")
 		} else {
 			fmt.Print("│ ")
