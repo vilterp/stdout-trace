@@ -45,9 +45,10 @@ func (f *Formatter) Handle(evt *TraceEvent) {
 
 func (f *Formatter) logLeftTrack(evtSpanID int, parentID int, evt string) {
 	parentToLeft := false
+	printedNode := false
 	for idx, spanID := range f.spanChannels {
 		if spanID == -1 {
-			if parentToLeft {
+			if parentToLeft && !printedNode {
 				fmt.Print("──")
 			} else {
 				fmt.Print("  ")
@@ -55,6 +56,7 @@ func (f *Formatter) logLeftTrack(evtSpanID int, parentID int, evt string) {
 			continue
 		}
 		if spanID == evtSpanID {
+			printedNode = true
 			switch evt {
 			case logEvt:
 				fmt.Print("*")
