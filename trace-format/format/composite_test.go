@@ -35,3 +35,7 @@ func TestCompositeLines(t *testing.T) {
 		})
 	}
 }
+
+func TestHorizLine(t *testing.T) {
+	require.Equal(t, Line(" ╶───╴"), horizLine(1, 5))
+}

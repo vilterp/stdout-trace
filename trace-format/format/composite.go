@@ -82,6 +82,19 @@ func (l Line) String() string {
 	return string(l)
 }
 
+func horizLine(leftIdx int, rightIdx int) Line {
+	var out Line
+	for i := 0; i < leftIdx; i++ {
+		out = append(out, Empty)
+	}
+	out = append(out, HorizRight)
+	for i := 0; i < rightIdx-leftIdx-1; i++ {
+		out = append(out, HorizFull)
+	}
+	out = append(out, HorizLeft)
+	return out
+}
+
 func maxLength(lines []Line) int {
 	maxLen := 0
 	for _, s := range lines {
