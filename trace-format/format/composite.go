@@ -82,6 +82,32 @@ func (l Line) String() string {
 	return string(l)
 }
 
+func (l Line) spaceOut() Line {
+	var out Line
+	for _, r := range l {
+		a, b := spaceOut(r)
+		out = append(out, a, b)
+	}
+	return out
+}
+
+func spaceOut(r rune) (rune, rune) {
+	switch r {
+	case HorizFull:
+		fallthrough
+	case HorizRight:
+		fallthrough
+	case Cross:
+		fallthrough
+	case OutRight:
+		fallthrough
+	case DownRight:
+		return r, HorizFull
+	default:
+		return r, Empty
+	}
+}
+
 func horizLine(leftIdx int, rightIdx int) Line {
 	var out Line
 	for i := 0; i < leftIdx; i++ {

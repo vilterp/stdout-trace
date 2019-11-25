@@ -58,7 +58,7 @@ func (f *Formatter) channelForSpan(spanID int) (int, bool) {
 }
 
 func (f *Formatter) logLeftTrack(evtSpanID int, parentID int, evt string) {
-	fmt.Print(f.getLeftTrack(evtSpanID, parentID, evt).String())
+	fmt.Print(f.getLeftTrack(evtSpanID, parentID, evt).spaceOut().String())
 }
 
 func (f *Formatter) getLeftTrack(evtSpanID int, parentID int, evt string) Line {
