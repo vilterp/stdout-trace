@@ -118,7 +118,10 @@ export function saveEvent(db: TraceDB, evt: TraceEvent): TraceDB {
   }
 }
 
-export function denormalize(db: TraceDB): Span {
+export function denormalize(db: TraceDB): Span | null {
+  if (!db.byID[1]) {
+    return null;
+  }
   return getSpan(db, 1); // TODO: assuming root span id always 1...
 }
 

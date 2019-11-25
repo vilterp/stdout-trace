@@ -8,6 +8,11 @@ import {
 } from "./trace";
 import "./App.css";
 import PanelLayout from "./util/PanelLayout";
+import TraceView, {
+  EMPTY_TRACE_VIEW_STATE,
+  TraceViewState,
+  update
+} from "./TraceView";
 
 const wsAddr =
   process.env.NODE_ENV === "development"
@@ -20,12 +25,17 @@ type WebSocketState = "CONNECTING" | "OPEN" | "CLOSED";
 interface AppState {
   db: TraceDB;
   wsState: WebSocketState;
+  traceState: TraceViewState;
 }
 
 class App extends React.Component<{}, AppState> {
   constructor(props: {}) {
     super(props);
-    this.state = { db: EMPTY_TRACE_DB, wsState: "CONNECTING" };
+    this.state = {
+      db: EMPTY_TRACE_DB,
+      wsState: "CONNECTING",
+      traceState: EMPTY_TRACE_VIEW_STATE
+    };
   }
 
   componentDidMount() {
@@ -61,6 +71,7 @@ class App extends React.Component<{}, AppState> {
   }
 
   render() {
+    const denormalized = denormalize(this.state.db);
     return (
       <PanelLayout
         titleArea={<h1 style={{ fontSize: 20, margin: 5 }}>Trace</h1>}
@@ -72,7 +83,21 @@ class App extends React.Component<{}, AppState> {
               Trace state:{" "}
               {allFinished(this.state.db) ? "finished" : "in progress"}
             </p>
-            <pre>{JSON.stringify(denormalize(this.state.db), null, 2)}</pre>
+            {denormalized ? (
+              <TraceView
+                trace={denormalized}
+                width={800}
+                traceState={this.state.traceState}
+                handleAction={a => {
+                  this.setState(p => ({
+                    ...p,
+                    traceState: update(this.state.traceState, a)
+                  }));
+                }}
+              />
+            ) : (
+              "no trace yet"
+            )}
           </div>
         }
       />
