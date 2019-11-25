@@ -1,5 +1,11 @@
 import React from "react";
-import { denormalize, EMPTY_TRACE_DB, saveEvent, TraceDB } from "./trace";
+import {
+  allFinished,
+  denormalize,
+  EMPTY_TRACE_DB,
+  saveEvent,
+  TraceDB
+} from "./trace";
 import "./App.css";
 
 const wsAddr =
@@ -22,6 +28,7 @@ class App extends React.Component<{}, AppState> {
   }
 
   componentDidMount() {
+    // TODO: try to reconnect
     const ws = new WebSocket(wsURL);
     ws.addEventListener("message", evt => {
       const traceEvt = JSON.parse(evt.data);
@@ -57,6 +64,9 @@ class App extends React.Component<{}, AppState> {
       <div>
         <h1>Trace</h1>
         <p>WS State: {this.state.wsState}</p>
+        <p>
+          Trace state: {allFinished(this.state.db) ? "finished" : "in progress"}
+        </p>
         <pre>{JSON.stringify(denormalize(this.state.db), null, 2)}</pre>
       </div>
     );

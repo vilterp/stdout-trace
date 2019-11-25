@@ -134,6 +134,11 @@ function getSpan(db: TraceDB, id: number): Span {
   };
 }
 
+// TODO: could index by whether finished or not
+export function allFinished(db: TraceDB): boolean {
+  return !Object.values(db.byID).some(v => !v.finishedAt);
+}
+
 function parseTimestamp(ts: string): DateTime {
   return DateTime.fromISO(ts);
 }
