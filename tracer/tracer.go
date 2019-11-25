@@ -28,9 +28,9 @@ type spanIDKey struct{}
 type parentIDKey struct{}
 
 const (
-	startSpanEvt  = "start_span"
-	logEvt        = "log"
-	finishSpanEvt = "finish_span"
+	StartSpanEvt  = "start_span"
+	LogEvt        = "log"
+	FinishSpanEvt = "finish_span"
 )
 
 func StartSpan(ctx context.Context, operation string) (*Span, context.Context) {
@@ -55,7 +55,7 @@ func (t *Tracer) StartSpan(ctx context.Context, operation string) (*Span, contex
 	now := time.Now()
 
 	t.logEvent(&TraceEvent{
-		TraceEvent: startSpanEvt,
+		TraceEvent: StartSpanEvt,
 		Timestamp:  now,
 		SpanID:     spanID,
 		ParentID:   parentID,
@@ -63,21 +63,21 @@ func (t *Tracer) StartSpan(ctx context.Context, operation string) (*Span, contex
 	})
 
 	return &Span{
-		id:         spanID,
-		parentID:   parentID,
-		operation:  operation,
-		startedAt:  now,
-		finishedAt: nil,
+		ID:         spanID,
+		ParentID:   parentID,
+		Operation:  operation,
+		StartedAt:  now,
+		FinishedAt: nil,
 		logs:       nil,
 	}, ctx
 }
 
 type Span struct {
-	id         int
-	parentID   int
-	operation  string
-	startedAt  time.Time
-	finishedAt *time.Time
+	ID         int
+	ParentID   int
+	Operation  string
+	StartedAt  time.Time
+	FinishedAt *time.Time
 	logs       []*LogLine
 }
 
@@ -97,8 +97,8 @@ func (s *Span) Log(line string) {
 	})
 
 	globalTracer.logEvent(&TraceEvent{
-		TraceEvent: logEvt,
-		SpanID:     s.id,
+		TraceEvent: LogEvt,
+		SpanID:     s.ID,
 		Timestamp:  now,
 		LogLine:    line,
 	})
@@ -106,12 +106,12 @@ func (s *Span) Log(line string) {
 
 func (s *Span) Finish() {
 	now := time.Now()
-	s.finishedAt = &now
+	s.FinishedAt = &now
 
 	globalTracer.logEvent(&TraceEvent{
-		TraceEvent: finishSpanEvt,
+		TraceEvent: FinishSpanEvt,
 		Timestamp:  now,
-		SpanID:     s.id,
+		SpanID:     s.ID,
 	})
 }
 
