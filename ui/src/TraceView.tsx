@@ -83,7 +83,28 @@ function flatten(tree: Span, collapsed: number[]) {
   return output;
 }
 
-class TraceView extends Component<TraceViewProps> {
+interface St {
+  now: DateTime;
+  nowIntervalID: NodeJS.Timeout;
+}
+
+class TraceView extends Component<TraceViewProps, St> {
+  componentDidMount() {
+    const nowIntervalID = setInterval(() => {
+      this.setState({
+        now: DateTime.local()
+      });
+    }, 16);
+    this.setState({
+      now: DateTime.local(),
+      nowIntervalID: nowIntervalID
+    });
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.state.nowIntervalID);
+  }
+
   handleAction = (action: Action) => {
     this.props.handleAction(action);
   };
@@ -92,8 +113,6 @@ class TraceView extends Component<TraceViewProps> {
     const { trace, width, traceState } = this.props;
     const { collapsedSpanIDs, hoveredSpanID } = traceState;
     const flattened = flatten(trace, collapsedSpanIDs);
-
-    console.log(this.props);
 
     // TODO(vilterp): convert to age
     const firstTS = trace.startedAt.toMillis();
@@ -180,7 +199,7 @@ class TraceView extends Component<TraceViewProps> {
                 {span.logLines.map((logEntry, logIdx) => (
                   <circle
                     key={logIdx}
-                    cx={scale(logEntry.timestamp.toMillis() + firstTS)}
+                    cx={scale(logEntry.timestamp.toMillis())}
                     cy={idx * HEIGHT_PLUS_SPACE + 20}
                     r={3}
                     fill={"white"}
