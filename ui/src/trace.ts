@@ -29,7 +29,7 @@ export interface LogLine {
   timestamp: DateTime;
 }
 
-interface NormalizedSpan {
+export interface NormalizedSpan {
   id: number;
   parentID?: number;
   op: string;

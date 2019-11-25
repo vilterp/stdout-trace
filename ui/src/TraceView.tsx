@@ -27,7 +27,7 @@ interface TraceViewProps {
   trace: Span;
   width: number;
   traceState: TraceViewState;
-  handleAction: (action: any) => void;
+  handleAction: (action: Action) => void;
 }
 
 export interface TraceViewState {
@@ -140,17 +140,12 @@ class TraceView extends Component<TraceViewProps, St> {
           const isHovered = hoveredSpanID === span.id;
           const isCollapsed = _.includes(collapsedSpanIDs, span.id);
           // TODO: is this nanos?
-          const timeLabel = span.finishedAt
-            ? span.finishedAt.diff(span.startedAt).toISO()
-            : "ongoing";
           const isLeaf = span.children.length === 0;
           const label = isLeaf
-            ? `${timeLabel} : ${span.op}`
+            ? `${span.op}`
             : isCollapsed
-            ? `${SIDE_ARROW} ${timeLabel} : ${span.op} (${numDescendants(
-                span
-              )})`
-            : `${DOWN_ARROW} ${timeLabel} : ${span.op}`;
+            ? `${SIDE_ARROW} ${span.op} (${numDescendants(span)})`
+            : `${DOWN_ARROW} ${span.op}`;
           const startTS = span.startedAt.toMillis();
           const endTS = span.finishedAt
             ? span.finishedAt.toMillis()

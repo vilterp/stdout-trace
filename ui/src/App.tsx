@@ -13,6 +13,7 @@ import TraceView, {
   TraceViewState,
   update
 } from "./TraceView";
+import { Sidebar } from "./Sidebar";
 
 const wsAddr =
   process.env.NODE_ENV === "development"
@@ -75,9 +76,15 @@ class App extends React.Component<{}, AppState> {
     return (
       <PanelLayout
         titleArea={<h1 style={{ fontSize: 20, margin: 5 }}>Trace</h1>}
-        sidebar={<p>Sup from the Sidebar</p>}
+        sidebar={
+          this.state.traceState.hoveredSpanID ? (
+            <Sidebar
+              span={this.state.db.byID[this.state.traceState.hoveredSpanID]}
+            />
+          ) : null
+        }
         mainContent={
-          <div>
+          <>
             <p>WS State: {this.state.wsState}</p>
             <p>
               Trace state:{" "}
@@ -98,7 +105,7 @@ class App extends React.Component<{}, AppState> {
             ) : (
               "no trace yet"
             )}
-          </div>
+          </>
         }
       />
     );
