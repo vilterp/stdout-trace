@@ -1,0 +1,28 @@
+.panel-layout {
+  display: grid;
+  grid-template-rows: 40px auto;
+  grid-template-columns: auto 33%;
+  height: 100vh;
+}
+
+.panel-layout__title-area {
+  padding: 5px;
+  background-color: #dddddd;
+  border-bottom: 1px solid #c0c0c0;
+  grid-column-start: 1;
+  grid-column-end: 3;
+}
+
+.panel-layout__main-content {
+  grid-row: 2;
+  grid-column: 1;
+  overflow: scroll;
+}
+
+.panel-layout__sidebar {
+  grid-row: 2;
+  grid-column: 2;
+  overflow: scroll;
+  border-left: 1px solid lightgrey;
+  background-color: #f0f0f0;
+}

@@ -7,6 +7,7 @@ import {
   TraceDB
 } from "./trace";
 import "./App.css";
+import PanelLayout from "./util/PanelLayout";
 
 const wsAddr =
   process.env.NODE_ENV === "development"
@@ -61,14 +62,20 @@ class App extends React.Component<{}, AppState> {
 
   render() {
     return (
-      <div>
-        <h1>Trace</h1>
-        <p>WS State: {this.state.wsState}</p>
-        <p>
-          Trace state: {allFinished(this.state.db) ? "finished" : "in progress"}
-        </p>
-        <pre>{JSON.stringify(denormalize(this.state.db), null, 2)}</pre>
-      </div>
+      <PanelLayout
+        titleArea={<h1 style={{ fontSize: 20, margin: 5 }}>Trace</h1>}
+        sidebar={<p>Sup from the Sidebar</p>}
+        mainContent={
+          <div>
+            <p>WS State: {this.state.wsState}</p>
+            <p>
+              Trace state:{" "}
+              {allFinished(this.state.db) ? "finished" : "in progress"}
+            </p>
+            <pre>{JSON.stringify(denormalize(this.state.db), null, 2)}</pre>
+          </div>
+        }
+      />
     );
   }
 }
