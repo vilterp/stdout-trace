@@ -14,7 +14,12 @@ type Tracer struct {
 }
 
 func NewTracer() *Tracer {
-	return &Tracer{}
+	return &Tracer{
+		// start at 1 to avoid Go mistake of conflating 0 with empty... facepalm
+		// TODO: maybe use separate structs for different types of events, instead of
+		//   using one struct to represent their union...
+		nextID: 1,
+	}
 }
 
 var globalTracer = NewTracer()

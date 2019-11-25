@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { denormalize, EMPTY_TRACE_DB, saveEvent, TraceDB } from "./trace";
 import "./App.css";
 
 const wsAddr =
@@ -7,65 +8,62 @@ const wsAddr =
     : window.location.host;
 const wsURL = `ws://${wsAddr}/ws`;
 
-type TraceEvent =
-  | {
-      evt: "start_span";
-      id: number;
-      parent_id: number;
-      ts: string;
-      op: string;
-    }
-  | {
-      evt: "log";
-      id: number;
-      ts: string;
-      line: string;
-    }
-  | {
-      evt: "finish_span";
-      id: number;
-      ts: string;
-    };
+type WebSocketState = "CONNECTING" | "OPEN" | "CLOSED";
 
-class Appc extends React.Component<{}, { events: TraceEvent[] }> {
+interface AppState {
+  db: TraceDB;
+  wsState: WebSocketState;
+}
+
+class App extends React.Component<{}, AppState> {
   constructor(props: {}) {
     super(props);
-    this.state = { events: [] };
+    this.state = { db: EMPTY_TRACE_DB, wsState: "CONNECTING" };
   }
 
   componentDidMount() {
     const ws = new WebSocket(wsURL);
     ws.addEventListener("message", evt => {
-      this.setState({ events: [...this.state.events, JSON.parse(evt.data)] });
+      const traceEvt = JSON.parse(evt.data);
+      const newDB = saveEvent(this.state.db, traceEvt);
+      console.log("UPDATE", this.state.db, traceEvt, "=>", newDB);
+      this.setState({ db: newDB });
     });
     ws.addEventListener("error", evt => {
       console.log("error", evt);
+      this.setState(s => ({
+        ...s,
+        wsState: "CLOSED"
+      }));
     });
     ws.addEventListener("close", evt => {
       console.log("close", evt);
+      this.setState(s => ({
+        ...s,
+        wsState: "CLOSED"
+      }));
     });
     ws.addEventListener("open", evt => {
       console.log("open", evt);
+      this.setState(s => ({
+        ...s,
+        wsState: "OPEN"
+      }));
     });
   }
 
   render() {
     return (
       <div>
-        <h1>Messages</h1>
-        <ul>
-          {this.state.events.map((msg, idx) => (
-            <li key={idx.toString()}>
-              <pre>{JSON.stringify(msg)}</pre>
-            </li>
-          ))}
-        </ul>
+        <h1>Trace</h1>
+        <p>WS State: {this.state.wsState}</p>
+        <pre>{JSON.stringify(denormalize(this.state.db), null, 2)}</pre>
       </div>
     );
   }
 }
 
-export default Appc;
+export default App;
 
 // TODO(vilterp): figure out how to use hooks for this
 // function App() {

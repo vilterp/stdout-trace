@@ -4,9 +4,11 @@
   "private": true,
   "dependencies": {
     "@types/jest": "24.0.23",
+    "@types/luxon": "^1.21.0",
     "@types/node": "12.12.12",
     "@types/react": "16.9.13",
     "@types/react-dom": "16.9.4",
+    "luxon": "^1.21.2",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-scripts": "3.2.0",
