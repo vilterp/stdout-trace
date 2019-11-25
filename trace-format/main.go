@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/vilterp/stdout-trace/trace-format/format"
 	"github.com/vilterp/stdout-trace/tracer"
 )
 
 func main() {
-	f := tracer.NewFormatter()
+	f := format.NewFormatter()
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
