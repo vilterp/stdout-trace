@@ -86,13 +86,9 @@ class App extends React.Component<{}, AppState> {
         mainContent={
           <>
             <p>WS State: {this.state.wsState}</p>
-            <p>
-              Trace state:{" "}
-              {allFinished(this.state.db) ? "finished" : "in progress"}
-            </p>
             {denormalized ? (
               <TraceView
-                trace={denormalized}
+                traces={denormalized}
                 width={800}
                 traceState={this.state.traceState}
                 handleAction={a => {

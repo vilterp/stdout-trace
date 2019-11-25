@@ -24,7 +24,7 @@ type Action =
   | { type: "UN_HOVER_SPAN" };
 
 interface TraceViewProps {
-  trace: Span;
+  traces: Span[];
   width: number;
   traceState: TraceViewState;
   handleAction: (action: Action) => void;
@@ -66,7 +66,8 @@ export function update(state: TraceViewState, action: Action): TraceViewState {
   }
 }
 
-function flatten(tree: Span, collapsed: number[]) {
+// preorder traversal, excluding collapsed children
+function flatten(tree: Span, collapsed: number[]): Span[] {
   const output: Span[] = [];
   function recur(node: Span) {
     output.push(node);
@@ -110,19 +111,25 @@ class TraceView extends Component<TraceViewProps, St> {
   };
 
   render() {
-    const { trace, width, traceState } = this.props;
+    const { traces, width, traceState } = this.props;
     const { collapsedSpanIDs, hoveredSpanID } = traceState;
-    const flattened = flatten(trace, collapsedSpanIDs);
+    const flattened = _.flatten(traces.map(t => flatten(t, collapsedSpanIDs)));
 
-    // TODO(vilterp): convert to age
-    const firstTS = trace.startedAt.toMillis();
+    if (traces.length === 0) {
+      return null;
+    }
+
+    const firstTS = (
+      _.minBy(traces, t => t.startedAt.toMillis()) || {
+        startedAt: DateTime.local()
+      }
+    ).startedAt;
     const lastTS =
       _.max(
-        flattened.map(
-          span =>
-            span.finishedAt
-              ? span.finishedAt.toMillis()
-              : DateTime.local().toMillis() // TODO: rerender on ticker to keep this up to date
+        flattened.map(span =>
+          span.finishedAt
+            ? span.finishedAt.toMillis()
+            : DateTime.local().toMillis()
         )
       ) || DateTime.local();
 

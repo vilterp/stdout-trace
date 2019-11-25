@@ -39,13 +39,15 @@ export interface NormalizedSpan {
 }
 
 export type TraceDB = {
-  byID: { [id: string]: NormalizedSpan };
-  byParentID: { [parentID: string]: number[] };
+  byID: { [id: number]: NormalizedSpan };
+  byParentID: { [parentID: number]: number[] };
+  roots: { [id: number]: true };
 };
 
 export const EMPTY_TRACE_DB: TraceDB = {
   byID: {},
-  byParentID: {}
+  byParentID: {},
+  roots: {}
 };
 
 function insert(db: TraceDB, span: NormalizedSpan): TraceDB {
@@ -56,9 +58,13 @@ function insert(db: TraceDB, span: NormalizedSpan): TraceDB {
         [span.parentID]: [...(db.byParentID[span.parentID] || []), span.id]
       }
     : db.byParentID;
+  // TODO: should probably use strings for ids and stop using these sentinel values
+  const isRoot = !span.parentID;
+  console.log({ isRoot });
   return {
     byID: newByID,
-    byParentID: newByParentID
+    byParentID: newByParentID,
+    roots: isRoot ? { ...db.roots, [span.id]: true } : db.roots
   };
 }
 
@@ -118,11 +124,8 @@ export function saveEvent(db: TraceDB, evt: TraceEvent): TraceDB {
   }
 }
 
-export function denormalize(db: TraceDB): Span | null {
-  if (!db.byID[1]) {
-    return null;
-  }
-  return getSpan(db, 1); // TODO: assuming root span id always 1...
+export function denormalize(db: TraceDB): Span[] {
+  return Object.keys(db.roots).map(rootID => getSpan(db, parseInt(rootID)));
 }
 
 function getSpan(db: TraceDB, id: number): Span {
