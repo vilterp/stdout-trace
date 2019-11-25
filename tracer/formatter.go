@@ -25,7 +25,7 @@ func (f *Formatter) Handle(evt *TraceEvent) {
 		f.addSpanToChannels(evt.SpanID)
 		f.logLeftTrack(evt.SpanID, evt.ParentID, startSpanEvt)
 		fmt.Print("\t")
-		fmt.Printf("start: %s\n", evt.Operation)
+		fmt.Printf("start: %s (%d=>%d)\n", evt.Operation, evt.ParentID, evt.SpanID)
 	case logEvt:
 		f.logLeftTrack(evt.SpanID, -1, logEvt)
 		fmt.Print("\t")
@@ -36,7 +36,7 @@ func (f *Formatter) Handle(evt *TraceEvent) {
 		f.logLeftTrack(evt.SpanID, -1, finishSpanEvt)
 		fmt.Print("\t")
 		duration := span.finishedAt.Sub(span.startedAt)
-		fmt.Printf("finish: %s (%v)\n", span.operation, duration)
+		fmt.Printf("finish: %s (%v) (%d)\n", span.operation, duration, span.id)
 		f.removeFromTrack(evt.SpanID)
 	}
 	//fmt.Println(f.spanChannels)
