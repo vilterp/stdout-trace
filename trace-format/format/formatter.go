@@ -30,7 +30,7 @@ func (f *Formatter) Handle(evt *tracer.TraceEvent) {
 		f.addSpanToChannels(evt.SpanID)
 		f.logLeftTrack(evt.SpanID, evt.ParentID, tracer.StartSpanEvt)
 		fmt.Print("\t")
-		fmt.Printf("start: %s (%d)\n", evt.Operation, evt.SpanID)
+		fmt.Printf("start: %s (%d=>%d)\n", evt.Operation, evt.ParentID, evt.SpanID)
 	case tracer.LogEvt:
 		f.logLeftTrack(evt.SpanID, -1, tracer.LogEvt)
 		fmt.Print("\t")
@@ -41,20 +41,20 @@ func (f *Formatter) Handle(evt *tracer.TraceEvent) {
 		f.logLeftTrack(evt.SpanID, -1, tracer.FinishSpanEvt)
 		fmt.Print("\t")
 		duration := span.FinishedAt.Sub(span.StartedAt)
-		fmt.Printf("finish: %s (%d) (%v)\n", span.Operation, span.ID, duration)
+		fmt.Printf("finish: %s (%v) (%v)\n", span.Operation, duration, span.ID)
 		f.removeFromTrack(evt.SpanID)
 	}
 	//fmt.Println(f.spanChannels)
 	//fmt.Println(f.openSpans)
 }
 
-func (f *Formatter) channelForSpan(spanID int) int {
+func (f *Formatter) channelForSpan(spanID int) (int, bool) {
 	for idx, id := range f.spanChannels {
 		if id == spanID {
-			return idx
+			return idx, true
 		}
 	}
-	panic(fmt.Sprintf("no channel holding span %d", spanID))
+	return 0, false
 }
 
 func (f *Formatter) logLeftTrack(evtSpanID int, parentID int, evt string) {
@@ -84,8 +84,14 @@ func (f *Formatter) spawnLine(fromSpanID int, toSpanID int) Line {
 	if fromSpanID == -1 { // root span
 		return nil
 	}
-	fromC := f.channelForSpan(fromSpanID)
-	toC := f.channelForSpan(toSpanID)
+	fromC, ok := f.channelForSpan(fromSpanID)
+	if !ok {
+		return nil
+	}
+	toC, ok := f.channelForSpan(toSpanID)
+	if !ok {
+		return nil
+	}
 	left := min(fromC, toC)
 	right := max(fromC, toC)
 	return horizLine(left, right)
@@ -106,7 +112,10 @@ func (f *Formatter) existingChannelsLine(newSpanID int) Line {
 }
 
 func (f *Formatter) evtLine(spanID int, evt string) Line {
-	c := f.channelForSpan(spanID)
+	c, ok := f.channelForSpan(spanID)
+	if !ok {
+		panic(fmt.Sprintf("can't find channel for event in span %d", spanID))
+	}
 	out := Line(strings.Repeat(" ", c))
 	switch evt {
 	case tracer.LogEvt:
