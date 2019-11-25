@@ -19,7 +19,7 @@ export function Sidebar(props: { span: NormalizedSpan }) {
             <th>Duration:</th>
             <td>
               {span.finishedAt
-                ? span.finishedAt.diff(span.startedAt).toISO()
+                ? span.finishedAt.diff(span.startedAt).toString()
                 : span.startedAt.diffNow().toISO()}
             </td>
           </tr>

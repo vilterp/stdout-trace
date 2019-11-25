@@ -144,6 +144,7 @@ class TraceView extends Component<TraceViewProps, St> {
         style={{ width: "100%", minWidth: width }}
       >
         {flattened.map((span, idx) => {
+          const isFinished = !!span.finishedAt;
           const isHovered = hoveredSpanID === span.id;
           const isCollapsed = _.includes(collapsedSpanIDs, span.id);
           // TODO: is this nanos?
@@ -187,6 +188,8 @@ class TraceView extends Component<TraceViewProps, St> {
                 fill={color}
                 y={idx * HEIGHT_PLUS_SPACE - 5}
                 x={scale(startTS)}
+                stroke={isFinished ? "black" : "red"}
+                strokeWidth={2}
                 height={HEIGHT}
                 width={Math.max(scale(endTS) - scale(startTS), 1)}
               />
