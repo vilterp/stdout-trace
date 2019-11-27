@@ -55,7 +55,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Server) serveStatic(w http.ResponseWriter, req *http.Request) {
-	http.FileServer(http.Dir("ui/build")).ServeHTTP(w, req)
+	http.FileServer(http.Dir("trace-ui/build")).ServeHTTP(w, req)
 }
 
 var upgrader = websocket.Upgrader{

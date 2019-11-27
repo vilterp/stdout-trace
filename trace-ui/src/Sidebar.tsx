@@ -36,7 +36,9 @@ export function Sidebar(props: { span: NormalizedSpan }) {
         <tbody>
           {span.logLines.map((logLine, idx) => (
             <tr key={idx}>
-              <td>{logLine.timestamp.toString()}</td>
+              <td style={{ whiteSpace: "nowrap", fontFamily: "monospace" }}>
+                {logLine.timestamp.toString()}
+              </td>
               <td style={{ fontFamily: "monospace", whiteSpace: "pre" }}>
                 {logLine.line}
               </td>

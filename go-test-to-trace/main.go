@@ -22,7 +22,8 @@ func init() {
 	runRegex = regexp.MustCompile(`=== RUN   (.*)`)
 	pauseRegex = regexp.MustCompile(`=== PAUSE (.*)`)
 	contRegex = regexp.MustCompile(`=== CONT  (.*)`)
-	logRegex = regexp.MustCompile(`=== LOG   (Test.*): (.*)`)
+	// TODO: want to avoid regex for test names if at all possible...
+	logRegex = regexp.MustCompile(`=== LOG   (Test[a-zA-Z_\-0-9]+): (.*)`)
 	passRegex = regexp.MustCompile(`--- PASS: (.*) \(.*\)`)
 	failRegex = regexp.MustCompile(`--- FAIL: (.*) \(.*\)`)
 }
@@ -59,6 +60,17 @@ func newConverter(rootSpan *tracer.Span, ctx context.Context) *converter {
 }
 
 func (c *converter) process(line string) {
+	if line == "FAIL" {
+		c.rootSpan.Log("FAIL")
+		c.rootSpan.Finish()
+		return
+	}
+	if line == "PASS" {
+		c.rootSpan.Log("PASS")
+		c.rootSpan.Finish()
+		return
+	}
+
 	if c.gettingFailureMessageFor != "" {
 		span, ok := c.testNameToSpan[c.gettingFailureMessageFor]
 		if !ok {
@@ -121,9 +133,10 @@ func (c *converter) process(line string) {
 	if logMatch != nil {
 		span, ok := c.testNameToSpan[logMatch[1]]
 		if !ok {
-			panic(fmt.Sprintf("couldn't find span for `%s` on line `%s`", failMatch, line))
+			panic(fmt.Sprintf("couldn't find span for `%s` on line `%s`", logMatch[1], line))
 		}
 		span.Log(logMatch[2])
+		return
 	}
 	//fmt.Fprintln(os.Stderr, "no match for", line)
 	c.mostRecentSpan.Log(line) // TODO: ...
