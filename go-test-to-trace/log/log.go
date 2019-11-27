@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func Log(t *testing.T, s string) {
-	fmt.Printf("=== LOG   %s: %s\n", t.Name(), s)
+func Log(t *testing.T, s interface{}) {
+	fmt.Printf("=== LOG   %s: %v\n", t.Name(), s)
 }
 
 func Logf(t *testing.T, format string, args ...interface{}) {
