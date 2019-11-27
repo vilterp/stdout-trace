@@ -6,9 +6,26 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/vilterp/stdout-trace/tracer"
 )
+
+var failRegex *regexp.Regexp
+var passRegex *regexp.Regexp
+var runRegex *regexp.Regexp
+var pauseRegex *regexp.Regexp
+var contRegex *regexp.Regexp
+var logRegex *regexp.Regexp
+
+func init() {
+	runRegex = regexp.MustCompile(`=== RUN   (.*)`)
+	pauseRegex = regexp.MustCompile(`=== PAUSE (.*)`)
+	contRegex = regexp.MustCompile(`=== CONT  (.*)`)
+	logRegex = regexp.MustCompile(`=== LOG   (Test.*): (.*)`)
+	passRegex = regexp.MustCompile(`--- PASS: (.*) \(.*\)`)
+	failRegex = regexp.MustCompile(`--- FAIL: (.*) \(.*\)`)
+}
 
 func main() {
 	s := bufio.NewScanner(os.Stdin)
@@ -28,6 +45,8 @@ type converter struct {
 	rootSpan       *tracer.Span
 	rootCtx        context.Context
 	mostRecentSpan *tracer.Span
+
+	gettingFailureMessageFor string
 }
 
 func newConverter(rootSpan *tracer.Span, ctx context.Context) *converter {
@@ -39,17 +58,25 @@ func newConverter(rootSpan *tracer.Span, ctx context.Context) *converter {
 	}
 }
 
-var failRegex *regexp.Regexp
-var passRegex *regexp.Regexp
-var runRegex *regexp.Regexp
-
-func init() {
-	failRegex = regexp.MustCompile(`=== FAIL: (.*)`)
-	passRegex = regexp.MustCompile(`--- PASS: (.*) \(.*\)`)
-	runRegex = regexp.MustCompile(`=== RUN   (.*)`)
-}
-
 func (c *converter) process(line string) {
+	if c.gettingFailureMessageFor != "" {
+		span, ok := c.testNameToSpan[c.gettingFailureMessageFor]
+		if !ok {
+			panic(fmt.Sprintf("couldn't find span for `%s`", c.gettingFailureMessageFor))
+		}
+		if span.FinishedAt != nil {
+			panic("wut")
+		}
+		if strings.HasPrefix(line, "    ") {
+			c.mostRecentSpan = c.rootSpan
+			span.Log(line[4:])
+			return
+		}
+		span.Log("FAIL") // TODO: finish with error or something
+		span.Finish()
+		c.gettingFailureMessageFor = ""
+	}
+
 	runMatch := runRegex.FindStringSubmatch(line)
 	if runMatch != nil {
 		span, _ := tracer.StartSpan(c.rootCtx, runMatch[1])
@@ -59,13 +86,7 @@ func (c *converter) process(line string) {
 	}
 	failMatch := failRegex.FindStringSubmatch(line)
 	if failMatch != nil {
-		span, ok := c.testNameToSpan[failMatch[1]]
-		if !ok {
-			panic(fmt.Sprintf("couldn't find span for `%s` on line `%s`", failMatch, line))
-		}
-		span.Log("FAIL") // TODO: finish with error or something
-		span.Finish()
-		c.mostRecentSpan = c.rootSpan
+		c.gettingFailureMessageFor = failMatch[1]
 		return
 	}
 	passMatch := passRegex.FindStringSubmatch(line)
@@ -78,5 +99,32 @@ func (c *converter) process(line string) {
 		c.mostRecentSpan = c.rootSpan
 		return
 	}
+	contMatch := contRegex.FindStringSubmatch(line)
+	if contMatch != nil {
+		span, ok := c.testNameToSpan[contMatch[1]]
+		if !ok {
+			panic(fmt.Sprintf("couldn't find span for `%s` on line `%s`", failMatch, line))
+		}
+		span.Log("CONT")
+		return
+	}
+	pauseMatch := pauseRegex.FindStringSubmatch(line)
+	if pauseMatch != nil {
+		span, ok := c.testNameToSpan[pauseMatch[1]]
+		if !ok {
+			panic(fmt.Sprintf("couldn't find span for `%s` on line `%s`", failMatch, line))
+		}
+		span.Log("PAUSE")
+		return
+	}
+	logMatch := logRegex.FindStringSubmatch(line)
+	if logMatch != nil {
+		span, ok := c.testNameToSpan[logMatch[1]]
+		if !ok {
+			panic(fmt.Sprintf("couldn't find span for `%s` on line `%s`", failMatch, line))
+		}
+		span.Log(logMatch[2])
+	}
+	//fmt.Fprintln(os.Stderr, "no match for", line)
 	c.mostRecentSpan.Log(line) // TODO: ...
 }
