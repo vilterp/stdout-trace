@@ -32,10 +32,12 @@ func (f *Formatter) Handle(evt *tracer.TraceEvent) {
 		fmt.Print("\t")
 		fmt.Printf("start: %s\n", evt.Operation)
 	case tracer.LogEvt:
+		f.guardOpenSpans(evt)
 		f.logLeftTrack(evt.SpanID, -1, tracer.LogEvt)
 		fmt.Print("\t")
 		fmt.Println(evt.LogLine)
 	case tracer.FinishSpanEvt:
+		f.guardOpenSpans(evt)
 		span := f.openSpans[evt.SpanID]
 		span.FinishedAt = &evt.Timestamp
 		f.logLeftTrack(evt.SpanID, -1, tracer.FinishSpanEvt)
@@ -112,7 +114,7 @@ func (f *Formatter) existingChannelsLine(newSpanID int) Line {
 func (f *Formatter) evtLine(spanID int, evt string) Line {
 	c, ok := f.channelForSpan(spanID)
 	if !ok {
-		panic(fmt.Sprintf("can't find channel for event in span %d", spanID))
+		panic(fmt.Sprintf("can't find channel for event in span %d. channels: %v. evt: %v", spanID, f.spanChannels, evt))
 	}
 	out := Line(strings.Repeat(" ", c))
 	switch evt {
@@ -141,5 +143,11 @@ func (f *Formatter) removeFromTrack(evtSpanID int) {
 			f.spanChannels[idx] = -1
 			return
 		}
+	}
+}
+
+func (f *Formatter) guardOpenSpans(evt *tracer.TraceEvent) {
+	if _, ok := f.openSpans[evt.SpanID]; !ok {
+		panic(fmt.Sprintf("span id %d already closed or never opened. evt: %+v", evt.SpanID, evt))
 	}
 }
