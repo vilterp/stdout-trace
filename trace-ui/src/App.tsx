@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  allFinished,
-  denormalize,
-  EMPTY_TRACE_DB,
-  saveEvent,
-  TraceDB
-} from "./trace";
+import { denormalize, EMPTY_TRACE_DB, saveEvent, TraceDB } from "./trace";
 import "./App.css";
 import PanelLayout from "./util/PanelLayout";
 import TraceView, {

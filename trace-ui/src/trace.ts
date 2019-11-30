@@ -2,20 +2,20 @@ import { DateTime } from "luxon";
 
 export type TraceEvent =
   | {
-      evt: "start_span";
+      trace_evt: "start_span";
       id: number;
       parent_id: number;
       ts: string;
       op: string;
     }
   | {
-      evt: "log";
+      trace_evt: "log";
       id: number;
       ts: string;
       line: string;
     }
   | {
-      evt: "finish_span";
+      trace_evt: "finish_span";
       id: number;
       ts: string;
     };
@@ -96,7 +96,7 @@ function update(
 }
 
 export function saveEvent(db: TraceDB, evt: TraceEvent): TraceDB {
-  switch (evt.evt) {
+  switch (evt.trace_evt) {
     case "start_span": {
       return insert(db, {
         id: evt.id,
@@ -138,11 +138,6 @@ function getSpan(db: TraceDB, id: number): Span {
       return getSpan(db, childID);
     })
   };
-}
-
-// TODO: could index by whether finished or not
-export function allFinished(db: TraceDB): boolean {
-  return !Object.values(db.byID).some(v => !v.finishedAt);
 }
 
 function parseTimestamp(ts: string): DateTime {
