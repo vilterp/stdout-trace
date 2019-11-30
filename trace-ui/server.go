@@ -11,24 +11,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func main() {
-	host := os.Getenv("HOST")
-	if host == "" {
-		host = "0.0.0.0"
-	}
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8888"
-	}
-	addr := fmt.Sprintf("%s:%s", host, port)
-
-	log.Printf("listening on http://%s/", addr)
-
-	s := NewServer()
-	go s.processStdin()
-	log.Fatal(http.ListenAndServe(addr, s))
-}
-
 type Server struct {
 	mux *http.ServeMux
 
@@ -115,6 +97,7 @@ func (s *Server) processStdin() {
 		s.pushToSockets(line)
 		fmt.Println(line)
 	}
+	fmt.Println("eof")
 }
 
 func (s *Server) pushToSockets(line string) {
