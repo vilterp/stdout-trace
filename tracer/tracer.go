@@ -68,22 +68,23 @@ func (t *Tracer) StartSpan(ctx context.Context, operation string) (*Span, contex
 		Operation:  operation,
 		StartedAt:  now,
 		FinishedAt: nil,
-		logs:       nil,
+		Logs:       nil,
 	}, ctx
 }
 
 type Span struct {
-	ID         int
-	ParentID   int
-	Operation  string
-	StartedAt  time.Time
-	FinishedAt *time.Time
-	logs       []*LogLine
+	ID         int        `json:"id"`
+	ParentID   int        `json:"parent_id"`
+	Operation  string     `json:"operation"`
+	StartedAt  time.Time  `json:"started_at"`
+	FinishedAt *time.Time `json:"finished_at"`
+	Logs       []*LogLine `json:"logs"`
+	Children   []*Span    `json:"children"`
 }
 
 type LogLine struct {
-	time time.Time
-	line string
+	Time time.Time `json:"time"`
+	Line string    `json:"line"`
 }
 
 // TODO: remove references to globaltracer
@@ -91,9 +92,9 @@ type LogLine struct {
 func (s *Span) Log(line string) {
 	now := time.Now()
 
-	s.logs = append(s.logs, &LogLine{
-		time: now,
-		line: line,
+	s.Logs = append(s.Logs, &LogLine{
+		Time: now,
+		Line: line,
 	})
 
 	globalTracer.logEvent(&TraceEvent{
@@ -118,7 +119,7 @@ func (s *Span) Finish() {
 // Event
 
 type TraceEvent struct {
-	TraceEvent string    `json:"evt"`
+	TraceEvent string    `json:"trace_evt"`
 	SpanID     int       `json:"id"`
 	ParentID   int       `json:"parent_id,omitempty"`
 	Timestamp  time.Time `json:"ts"`
