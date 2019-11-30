@@ -3,6 +3,7 @@ import { denormalize, EMPTY_TRACE_DB, saveEvent, TraceDB } from "./trace";
 import "./App.css";
 import PanelLayout from "./util/PanelLayout";
 import TraceView, {
+  Action,
   EMPTY_TRACE_VIEW_STATE,
   TraceViewState,
   update
@@ -65,6 +66,14 @@ class App extends React.Component<{}, AppState> {
     });
   }
 
+  handleAction = (action: Action) => {
+    console.log("trace view action:", action);
+    this.setState(p => ({
+      ...p,
+      traceState: update(this.state.traceState, action)
+    }));
+  };
+
   render() {
     const denormalized = denormalize(this.state.db);
     return (
@@ -74,6 +83,12 @@ class App extends React.Component<{}, AppState> {
           this.state.traceState.hoveredSpanID ? (
             <Sidebar
               span={this.state.db.byID[this.state.traceState.hoveredSpanID]}
+              handleAction={this.handleAction}
+              highlightedLogIdx={
+                this.state.traceState.highlightedLogLineBySpanID[
+                  this.state.traceState.hoveredSpanID
+                ]
+              }
             />
           ) : null
         }
@@ -85,12 +100,7 @@ class App extends React.Component<{}, AppState> {
                 traces={denormalized}
                 width={800}
                 traceState={this.state.traceState}
-                handleAction={a => {
-                  this.setState(p => ({
-                    ...p,
-                    traceState: update(this.state.traceState, a)
-                  }));
-                }}
+                handleAction={this.handleAction}
               />
             ) : (
               "no trace yet"

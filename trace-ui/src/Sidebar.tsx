@@ -1,8 +1,14 @@
 import React from "react";
 import { NormalizedSpan } from "./trace";
+import { Action } from "./TraceView";
+import "./Sidebar.css";
 
-export function Sidebar(props: { span: NormalizedSpan }) {
-  const span = props.span;
+export function Sidebar(props: {
+  span: NormalizedSpan;
+  highlightedLogIdx: number;
+  handleAction: (a: Action) => void;
+}) {
+  const { span, highlightedLogIdx } = props;
   return (
     <div style={{ padding: 10 }}>
       <table>
@@ -34,16 +40,31 @@ export function Sidebar(props: { span: NormalizedSpan }) {
           </tr>
         </thead>
         <tbody>
-          {span.logLines.map((logLine, idx) => (
-            <tr key={idx}>
-              <td style={{ whiteSpace: "nowrap", fontFamily: "monospace" }}>
-                {logLine.timestamp.toString()}
-              </td>
-              <td style={{ fontFamily: "monospace", whiteSpace: "pre" }}>
-                {logLine.line}
-              </td>
-            </tr>
-          ))}
+          {span.logLines.map((logLine, idx) => {
+            const highlighted = idx === highlightedLogIdx;
+            return (
+              <tr
+                key={idx}
+                className={`log-line ${
+                  highlighted ? "log-line--highlighted" : ""
+                }`}
+                onMouseOver={() =>
+                  props.handleAction({
+                    type: "HOVER_LOG_LINE",
+                    spanID: span.id,
+                    logIdx: idx
+                  })
+                }
+              >
+                <td style={{ whiteSpace: "nowrap", fontFamily: "monospace" }}>
+                  {logLine.timestamp.toString()}
+                </td>
+                <td style={{ fontFamily: "monospace", whiteSpace: "pre" }}>
+                  {logLine.line}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

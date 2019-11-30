@@ -18,10 +18,11 @@ const HEIGHT_PLUS_SPACE = HEIGHT + 5;
 const DOWN_ARROW = "▼";
 const SIDE_ARROW = "▶";
 
-type Action =
+export type Action =
   | { type: "TOGGLE_COLLAPSED"; spanID: number }
   | { type: "HOVER_SPAN"; spanID: number }
-  | { type: "UN_HOVER_SPAN" };
+  | { type: "UN_HOVER_SPAN" }
+  | { type: "HOVER_LOG_LINE"; spanID: number; logIdx: number };
 
 interface TraceViewProps {
   traces: Span[];
@@ -33,11 +34,13 @@ interface TraceViewProps {
 export interface TraceViewState {
   hoveredSpanID: number | null;
   collapsedSpanIDs: number[];
+  highlightedLogLineBySpanID: { [spanID: number]: number };
 }
 
 export const EMPTY_TRACE_VIEW_STATE: TraceViewState = {
   hoveredSpanID: null,
-  collapsedSpanIDs: []
+  collapsedSpanIDs: [],
+  highlightedLogLineBySpanID: {}
 };
 
 export function update(state: TraceViewState, action: Action): TraceViewState {
@@ -60,6 +63,14 @@ export function update(state: TraceViewState, action: Action): TraceViewState {
       return {
         ...state,
         hoveredSpanID: null
+      };
+    case "HOVER_LOG_LINE":
+      return {
+        ...state,
+        highlightedLogLineBySpanID: {
+          ...state.highlightedLogLineBySpanID,
+          [action.spanID]: action.logIdx
+        }
       };
     default:
       return state;
@@ -142,6 +153,9 @@ class TraceView extends Component<TraceViewProps, St> {
       <svg
         height={flattened.length * HEIGHT_PLUS_SPACE}
         style={{ width: "100%", minWidth: width }}
+        onScroll={evt => {
+          console.log(evt);
+        }}
       >
         {flattened.map((span, idx) => {
           const isFinished = !!span.finishedAt;
@@ -159,11 +173,13 @@ class TraceView extends Component<TraceViewProps, St> {
             ? span.finishedAt.toMillis()
             : DateTime.local();
           const color = stringToColor(span.op);
+          const highlightedLogIdx =
+            traceState.highlightedLogLineBySpanID[span.id];
           return (
             <g
               key={span.id}
               style={{ cursor: "pointer" }}
-              onMouseOver={() => {
+              onMouseEnter={() => {
                 this.handleAction({ type: "HOVER_SPAN", spanID: span.id });
               }}
               onClick={
@@ -201,16 +217,26 @@ class TraceView extends Component<TraceViewProps, St> {
                 {label}
               </text>
               <g>
-                {span.logLines.map((logEntry, logIdx) => (
-                  <circle
-                    key={logIdx}
-                    cx={scale(logEntry.timestamp.toMillis())}
-                    cy={idx * HEIGHT_PLUS_SPACE + 20}
-                    r={3}
-                    fill={"white"}
-                    stroke={"black"}
-                  />
-                ))}
+                {span.logLines.map((logEntry, logIdx) => {
+                  const logLineHighlited = highlightedLogIdx === logIdx;
+                  return (
+                    <circle
+                      key={logIdx}
+                      cx={scale(logEntry.timestamp.toMillis())}
+                      cy={idx * HEIGHT_PLUS_SPACE + 20}
+                      r={3}
+                      fill={logLineHighlited ? "red" : "white"}
+                      stroke="black"
+                      onMouseOver={() =>
+                        this.handleAction({
+                          type: "HOVER_LOG_LINE",
+                          spanID: span.id,
+                          logIdx
+                        })
+                      }
+                    />
+                  );
+                })}
               </g>
             </g>
           );
