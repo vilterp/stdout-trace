@@ -88,6 +88,8 @@ CREATE TABLE IF NOT EXISTS spans (
 	finished_at TIMESTAMPTZ
 );
 
+CREATE INDEX IF NOT EXISTS spans_parent_id ON spans (parent_id);
+
 CREATE TABLE IF NOT EXISTS logs (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	span_id TEXT,
