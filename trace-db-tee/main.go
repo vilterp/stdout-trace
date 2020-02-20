@@ -94,6 +94,8 @@ CREATE TABLE IF NOT EXISTS logs (
 	timestamp TIMESTAMPTZ,
 	text TEXT
 );
+
+CREATE INDEX IF NOT EXISTS logs_span_id ON logs (span_id);
 `
 
 func (p *processor) ensureSchema() error {
