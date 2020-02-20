@@ -34,12 +34,12 @@ func StartSpan(ctx context.Context, operation string) (*Span, context.Context) {
 }
 
 func (t *Tracer) StartSpan(ctx context.Context, operation string) (*Span, context.Context) {
-	parentID, ok := ctx.Value(spanIDKey{}).(xid.ID)
+	parentID, ok := ctx.Value(spanIDKey{}).(string)
 	if !ok {
-		parentID = xid.NilID()
+		parentID = ""
 	}
 
-	spanID := xid.New()
+	spanID := xid.New().String()
 	ctx = context.WithValue(ctx, spanIDKey{}, spanID)
 	ctx = context.WithValue(ctx, parentIDKey{}, parentID)
 
@@ -48,14 +48,14 @@ func (t *Tracer) StartSpan(ctx context.Context, operation string) (*Span, contex
 	t.logEvent(&TraceEvent{
 		TraceEvent: StartSpanEvt,
 		Timestamp:  now,
-		SpanID:     spanID.String(),
-		ParentID:   parentID.String(),
+		SpanID:     spanID,
+		ParentID:   parentID,
 		Operation:  operation,
 	})
 
 	return &Span{
-		ID:         spanID.String(),
-		ParentID:   parentID.String(),
+		ID:         spanID,
+		ParentID:   parentID,
 		Operation:  operation,
 		StartedAt:  now,
 		FinishedAt: nil,
