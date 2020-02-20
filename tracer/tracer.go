@@ -57,14 +57,14 @@ func (t *Tracer) StartSpan(ctx context.Context, operation string) (*Span, contex
 	t.logEvent(&TraceEvent{
 		TraceEvent: StartSpanEvt,
 		Timestamp:  now,
-		SpanID:     spanID,
-		ParentID:   parentID,
+		SpanID:     fmt.Sprintf("%d", spanID),
+		ParentID:   fmt.Sprintf("%d", parentID),
 		Operation:  operation,
 	})
 
 	return &Span{
-		ID:         spanID,
-		ParentID:   parentID,
+		ID:         fmt.Sprintf("%d", spanID),
+		ParentID:   fmt.Sprintf("%d", parentID),
 		Operation:  operation,
 		StartedAt:  now,
 		FinishedAt: nil,
@@ -73,8 +73,8 @@ func (t *Tracer) StartSpan(ctx context.Context, operation string) (*Span, contex
 }
 
 type Span struct {
-	ID         int        `json:"id"`
-	ParentID   int        `json:"parent_id"`
+	ID         string     `json:"id"`
+	ParentID   string     `json:"parent_id"`
 	Operation  string     `json:"operation"`
 	StartedAt  time.Time  `json:"started_at"`
 	FinishedAt *time.Time `json:"finished_at"`
@@ -120,8 +120,8 @@ func (s *Span) Finish() {
 
 type TraceEvent struct {
 	TraceEvent string    `json:"trace_evt"`
-	SpanID     int       `json:"id"`
-	ParentID   int       `json:"parent_id,omitempty"`
+	SpanID     string    `json:"id"`
+	ParentID   string    `json:"parent_id,omitempty"`
 	Timestamp  time.Time `json:"ts"`
 	LogLine    string    `json:"line,omitempty"`
 	Operation  string    `json:"op,omitempty"`
