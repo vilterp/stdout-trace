@@ -4,22 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sync"
 	"time"
+
+	"github.com/rs/xid"
 )
 
+// TODO: not sure this type should event exist.
+//   maybe it should hold onto a logger or something.
 type Tracer struct {
-	mu     sync.Mutex
-	nextID int
 }
 
 func NewTracer() *Tracer {
-	return &Tracer{
-		// start at 1 to avoid Go mistake of conflating 0 with empty... facepalm
-		// TODO: maybe use separate structs for different types of events, instead of
-		//   using one struct to represent their union...
-		nextID: 1,
-	}
+	return &Tracer{}
 }
 
 var globalTracer = NewTracer()
@@ -38,19 +34,14 @@ func StartSpan(ctx context.Context, operation string) (*Span, context.Context) {
 }
 
 func (t *Tracer) StartSpan(ctx context.Context, operation string) (*Span, context.Context) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-
-	parentID, ok := ctx.Value(spanIDKey{}).(int)
+	parentID, ok := ctx.Value(spanIDKey{}).(string)
 	if !ok {
-		parentID = -1
+		parentID = ""
 	}
 
-	spanID := t.nextID
+	spanID := xid.New()
 	ctx = context.WithValue(ctx, spanIDKey{}, spanID)
 	ctx = context.WithValue(ctx, parentIDKey{}, parentID)
-
-	t.nextID += 1
 
 	now := time.Now()
 

@@ -61,8 +61,8 @@ func (p *processor) updateDB(evt *tracer.TraceEvent) error {
 	switch evt.TraceEvent {
 	case tracer.StartSpanEvt:
 		_, err := p.conn.Exec(
-			"INSERT INTO spans (id, parent_id, started_at) VALUES ($1, $2, $3)",
-			evt.SpanID, evt.ParentID, evt.Timestamp,
+			"INSERT INTO spans (id, parent_id, operation, started_at) VALUES ($1, $2, $3, $4)",
+			evt.SpanID, evt.ParentID, evt.Operation, evt.Timestamp,
 		)
 		return err
 	case tracer.LogEvt:
@@ -83,6 +83,7 @@ var schema = `
 CREATE TABLE IF NOT EXISTS spans (
 	id TEXT PRIMARY KEY,
 	parent_id TEXT, -- TODO: foreign key?
+	operation TEXT,
 	started_at TIMESTAMPTZ,
 	finished_at TIMESTAMPTZ
 );
