@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"time"
 
 	"github.com/rs/xid"
@@ -12,13 +14,16 @@ import (
 // TODO: not sure this type should event exist.
 //   maybe it should hold onto a logger or something.
 type Tracer struct {
+	writer io.Writer
 }
 
-func NewTracer() *Tracer {
-	return &Tracer{}
+func NewTracer(w io.Writer) *Tracer {
+	return &Tracer{
+		writer: w,
+	}
 }
 
-var globalTracer = NewTracer()
+var globalTracer = NewTracer(os.Stdout)
 
 type spanIDKey struct{}
 type parentIDKey struct{}
@@ -31,6 +36,10 @@ const (
 
 func StartSpan(ctx context.Context, operation string) (*Span, context.Context) {
 	return globalTracer.StartSpan(ctx, operation)
+}
+
+func SetOutputWriter(w io.Writer) {
+	globalTracer.writer = w
 }
 
 func (t *Tracer) StartSpan(ctx context.Context, operation string) (*Span, context.Context) {
@@ -127,5 +136,5 @@ func (e *TraceEvent) ToJSON() string {
 }
 
 func (t *Tracer) logEvent(e *TraceEvent) {
-	fmt.Println(e.ToJSON())
+	fmt.Fprintln(t.writer, e.ToJSON())
 }

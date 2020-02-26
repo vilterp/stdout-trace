@@ -88,8 +88,8 @@ func newConverter() *converter {
 func (c *converter) process(line string, ts time.Time) {
 	if c.rootSpan == nil {
 		rootSpan := &tracer.Span{
-			ID:         1,
-			ParentID:   -1,
+			ID:         "1",
+			ParentID:   "",
 			Operation:  "run go tests",
 			StartedAt:  ts,
 			FinishedAt: nil,
@@ -99,8 +99,8 @@ func (c *converter) process(line string, ts time.Time) {
 		c.logEvt(&tracer.TraceEvent{
 			TraceEvent: tracer.StartSpanEvt,
 			Operation:  "run go tests",
-			SpanID:     1,
-			ParentID:   -1,
+			SpanID:     "1",
+			ParentID:   "",
 			Timestamp:  ts,
 		})
 	}
@@ -138,7 +138,7 @@ func (c *converter) process(line string, ts time.Time) {
 
 	runMatch := runRegex.FindStringSubmatch(line)
 	if runMatch != nil {
-		span := c.startSpan(runMatch[1], 1, ts)
+		span := c.startSpan(runMatch[1], "1", ts)
 		c.testNameToSpan[runMatch[1]] = span
 		c.mostRecentSpan = span
 		return
@@ -192,9 +192,10 @@ func (c *converter) logEvt(evt *tracer.TraceEvent) {
 	fmt.Println(evt.ToJSON())
 }
 
-func (c *converter) startSpan(opName string, parentID int, ts time.Time) *tracer.Span {
-	id := c.nextSpanID
+func (c *converter) startSpan(opName string, parentID string, ts time.Time) *tracer.Span {
+	rawID := c.nextSpanID
 	c.nextSpanID++
+	id := fmt.Sprintf("%d", rawID)
 
 	c.logEvt(&tracer.TraceEvent{
 		SpanID:     id,

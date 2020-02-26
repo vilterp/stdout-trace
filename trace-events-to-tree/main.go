@@ -38,12 +38,12 @@ func main() {
 type treeBuilder struct {
 	rootSpan *tracer.Span
 
-	openSpans map[int]*tracer.Span
+	openSpans map[string]*tracer.Span
 }
 
 func newTreeBuilder() *treeBuilder {
 	return &treeBuilder{
-		openSpans: map[int]*tracer.Span{},
+		openSpans: map[string]*tracer.Span{},
 	}
 }
 

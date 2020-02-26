@@ -114,7 +114,7 @@ func (f *Formatter) existingChannelsLine(newSpanID string) Line {
 func (f *Formatter) evtLine(spanID string, evt string) Line {
 	c, ok := f.channelForSpan(spanID)
 	if !ok {
-		panic(fmt.Sprintf("can't find channel for event in span %d. channels: %v. evt: %v", spanID, f.spanChannels, evt))
+		panic(fmt.Sprintf("can't find channel for event in span %s. channels: %v. evt: %v", spanID, f.spanChannels, evt))
 	}
 	out := Line(strings.Repeat(" ", c))
 	switch evt {
@@ -148,6 +148,6 @@ func (f *Formatter) removeFromTrack(evtSpanID string) {
 
 func (f *Formatter) guardOpenSpans(evt *tracer.TraceEvent) {
 	if _, ok := f.openSpans[evt.SpanID]; !ok {
-		panic(fmt.Sprintf("span id %d already closed or never opened. evt: %+v", evt.SpanID, evt))
+		panic(fmt.Sprintf("span id %s already closed or never opened. evt: %+v", evt.SpanID, evt))
 	}
 }

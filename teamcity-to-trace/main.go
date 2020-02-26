@@ -53,8 +53,8 @@ func (p *processor) process(line string) {
 
 		evt := &tracer.TraceEvent{
 			TraceEvent: tracer.StartSpanEvt,
-			SpanID:     1,
-			ParentID:   -1,
+			SpanID:     "1",
+			ParentID:   "",
 			Timestamp:  ts,
 			Operation:  "Run TeamCity build",
 			LogLine:    lineContent,
@@ -64,7 +64,7 @@ func (p *processor) process(line string) {
 
 	p.logEvt(&tracer.TraceEvent{
 		TraceEvent: tracer.LogEvt,
-		SpanID:     1,
+		SpanID:     "1",
 		Timestamp:  ts,
 		LogLine:    lineContent,
 	})
@@ -73,7 +73,7 @@ func (p *processor) process(line string) {
 func (p *processor) finish() {
 	p.logEvt(&tracer.TraceEvent{
 		TraceEvent: tracer.FinishSpanEvt,
-		SpanID:     1,
+		SpanID:     "1",
 		Timestamp:  p.lastTS,
 	})
 }
