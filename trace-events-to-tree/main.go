@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/vilterp/stdout-trace/tracer"
 )
@@ -42,8 +43,20 @@ type treeBuilder struct {
 }
 
 func newTreeBuilder() *treeBuilder {
+	root := &tracer.Span{
+		ID:         "__ROOT__",
+		ParentID:   "",
+		Operation:  "root",
+		StartedAt:  time.Time{},
+		FinishedAt: nil,
+		Logs:       nil,
+		Children:   nil,
+	}
 	return &treeBuilder{
-		openSpans: map[string]*tracer.Span{},
+		rootSpan: root,
+		openSpans: map[string]*tracer.Span{
+			root.ID: root,
+		},
 	}
 }
 
@@ -57,11 +70,11 @@ func (tb *treeBuilder) process(evt *tracer.TraceEvent) {
 			StartedAt: evt.Timestamp,
 		}
 		tb.openSpans[span.ID] = span
-		if tb.rootSpan == nil {
-			tb.rootSpan = span
-		} else {
-			parent := tb.openSpans[span.ParentID]
+		parent := tb.openSpans[span.ParentID]
+		if parent != nil {
 			parent.Children = append(parent.Children, span)
+		} else {
+			tb.rootSpan.Children = append(tb.rootSpan.Children, span)
 		}
 	case tracer.LogEvt:
 		span, ok := tb.openSpans[evt.SpanID]
@@ -71,6 +84,9 @@ func (tb *treeBuilder) process(evt *tracer.TraceEvent) {
 		span.Logs = append(span.Logs, &tracer.LogLine{
 			Time: evt.Timestamp,
 			Line: evt.LogLine,
+
+			Tags:  evt.Tags,
+			Attrs: evt.Attrs,
 		})
 	case tracer.FinishSpanEvt:
 		span, ok := tb.openSpans[evt.SpanID]

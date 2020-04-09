@@ -114,7 +114,8 @@ func (f *Formatter) existingChannelsLine(newSpanID string) Line {
 func (f *Formatter) evtLine(spanID string, evt string) Line {
 	c, ok := f.channelForSpan(spanID)
 	if !ok {
-		panic(fmt.Sprintf("can't find channel for event in span %s. channels: %v. evt: %v", spanID, f.spanChannels, evt))
+		// panic(fmt.Sprintf("can't find channel for event in span %s. channels: %v. evt: %v", spanID, f.spanChannels, evt))
+		return Line("")
 	}
 	out := Line(strings.Repeat(" ", c))
 	switch evt {

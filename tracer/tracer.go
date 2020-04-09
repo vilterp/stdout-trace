@@ -85,6 +85,9 @@ type Span struct {
 type LogLine struct {
 	Time time.Time `json:"time"`
 	Line string    `json:"line"`
+
+	Tags  map[string]interface{} `json:"tags,omitempty"`
+	Attrs map[string]interface{} `json:"attrs,omitempty"`
 }
 
 // TODO: remove references to globaltracer
@@ -125,6 +128,9 @@ type TraceEvent struct {
 	Timestamp  time.Time `json:"ts"`
 	LogLine    string    `json:"line,omitempty"`
 	Operation  string    `json:"op,omitempty"`
+
+	Tags  map[string]interface{} `json:"tags,omitempty"`
+	Attrs map[string]interface{} `json:"attrs,omitempty"`
 }
 
 func (e *TraceEvent) ToJSON() string {
