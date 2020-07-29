@@ -6,7 +6,7 @@ import TraceView, {
   Action,
   EMPTY_TRACE_VIEW_STATE,
   TraceViewState,
-  update
+  update,
 } from "./TraceView";
 import { Sidebar } from "./Sidebar";
 
@@ -30,47 +30,47 @@ class App extends React.Component<{}, AppState> {
     this.state = {
       db: EMPTY_TRACE_DB,
       wsState: "CONNECTING",
-      traceState: EMPTY_TRACE_VIEW_STATE
+      traceState: EMPTY_TRACE_VIEW_STATE,
     };
   }
 
   componentDidMount() {
     // TODO: try to reconnect
     const ws = new WebSocket(wsURL);
-    ws.addEventListener("message", evt => {
+    ws.addEventListener("message", (evt) => {
       const traceEvt = JSON.parse(evt.data);
       const newDB = saveEvent(this.state.db, traceEvt);
       console.log("UPDATE", this.state.db, traceEvt, "=>", newDB);
       this.setState({ db: newDB });
     });
-    ws.addEventListener("error", evt => {
+    ws.addEventListener("error", (evt) => {
       console.log("error", evt);
-      this.setState(s => ({
+      this.setState((s) => ({
         ...s,
-        wsState: "CLOSED"
+        wsState: "CLOSED",
       }));
     });
-    ws.addEventListener("close", evt => {
+    ws.addEventListener("close", (evt) => {
       console.log("close", evt);
-      this.setState(s => ({
+      this.setState((s) => ({
         ...s,
-        wsState: "CLOSED"
+        wsState: "CLOSED",
       }));
     });
-    ws.addEventListener("open", evt => {
+    ws.addEventListener("open", (evt) => {
       console.log("open", evt);
-      this.setState(s => ({
+      this.setState((s) => ({
         ...s,
-        wsState: "OPEN"
+        wsState: "OPEN",
       }));
     });
   }
 
   handleAction = (action: Action) => {
     console.log("trace view action:", action);
-    this.setState(p => ({
+    this.setState((p) => ({
       ...p,
-      traceState: update(this.state.traceState, action)
+      traceState: update(this.state.traceState, action),
     }));
   };
 

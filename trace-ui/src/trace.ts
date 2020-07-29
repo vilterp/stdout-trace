@@ -59,7 +59,7 @@ function insert(db: TraceDB, span: NormalizedSpan): TraceDB {
       }
     : db.byParentID;
   // TODO: should probably use strings for ids and stop using these sentinel values
-  const isRoot = !span.parentID;
+  const isRoot = Object.keys(db.byID).length === 0;
   console.log({ isRoot });
   return {
     byID: newByID,

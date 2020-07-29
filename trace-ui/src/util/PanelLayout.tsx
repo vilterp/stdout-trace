@@ -16,9 +16,9 @@ function PanelLayout(props: {
       style={{
         gridTemplateColumns: `auto 5px ${sidebarWidthPx}px`,
         userSelect: dragging ? "none" : "inherit",
-        cursor: dragging ? "grabbing" : "default"
+        cursor: dragging ? "grabbing" : "default",
       }}
-      onMouseMove={evt => {
+      onMouseMove={(evt) => {
         if (dragging) {
           setSidebarWidthPx(window.innerWidth - evt.clientX);
         }

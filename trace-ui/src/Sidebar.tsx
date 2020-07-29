@@ -25,8 +25,9 @@ export function Sidebar(props: {
             <th>Duration:</th>
             <td>
               {span.finishedAt
-                ? span.finishedAt.diff(span.startedAt).toString()
-                : span.startedAt.diffNow().toISO()}
+                ? span.finishedAt.diff(span.startedAt).milliseconds
+                : span.startedAt.diffNow().milliseconds}
+              ms
             </td>
           </tr>
         </tbody>
@@ -52,7 +53,7 @@ export function Sidebar(props: {
                   props.handleAction({
                     type: "HOVER_LOG_LINE",
                     spanID: span.id,
-                    logIdx: idx
+                    logIdx: idx,
                   })
                 }
               >

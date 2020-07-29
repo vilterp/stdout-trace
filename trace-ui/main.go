@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
+	"github.com/vilterp/stdout-trace/tracer"
 )
 
 func main() {
@@ -110,6 +112,11 @@ func (s *Server) processStdin() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
+
+		evt := tracer.TraceEvent{}
+		if err := json.Unmarshal([]byte(line), &evt); err != nil {
+			continue
+		}
 
 		s.appendMessage(line)
 		s.pushToSockets(line)

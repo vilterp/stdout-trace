@@ -8,7 +8,7 @@ import { stringToColor } from "./util/stringToColor";
 function numDescendants(s: Span): number {
   return (
     s.children.length +
-    s.children.map(c => numDescendants(c)).reduce((a, b) => a + b, 0) // TODO: .sum() would be nice
+    s.children.map((c) => numDescendants(c)).reduce((a, b) => a + b, 0) // TODO: .sum() would be nice
   );
 }
 
@@ -40,7 +40,7 @@ export interface TraceViewState {
 export const EMPTY_TRACE_VIEW_STATE: TraceViewState = {
   hoveredSpanID: null,
   collapsedSpanIDs: [],
-  highlightedLogLineBySpanID: {}
+  highlightedLogLineBySpanID: {},
 };
 
 export function update(state: TraceViewState, action: Action): TraceViewState {
@@ -50,27 +50,27 @@ export function update(state: TraceViewState, action: Action): TraceViewState {
       return {
         ...state,
         collapsedSpanIDs: isCollapsed
-          ? state.collapsedSpanIDs.filter(spanID => spanID !== action.spanID)
-          : [...state.collapsedSpanIDs, action.spanID]
+          ? state.collapsedSpanIDs.filter((spanID) => spanID !== action.spanID)
+          : [...state.collapsedSpanIDs, action.spanID],
       };
     }
     case "HOVER_SPAN":
       return {
         ...state,
-        hoveredSpanID: action.spanID
+        hoveredSpanID: action.spanID,
       };
     case "UN_HOVER_SPAN":
       return {
         ...state,
-        hoveredSpanID: null
+        hoveredSpanID: null,
       };
     case "HOVER_LOG_LINE":
       return {
         ...state,
         highlightedLogLineBySpanID: {
           ...state.highlightedLogLineBySpanID,
-          [action.spanID]: action.logIdx
-        }
+          [action.spanID]: action.logIdx,
+        },
       };
     default:
       return state;
@@ -86,7 +86,7 @@ function flatten(tree: Span, collapsed: number[]): Span[] {
       return;
     }
     if (node.children) {
-      node.children.forEach(child => {
+      node.children.forEach((child) => {
         recur(child);
       });
     }
@@ -104,12 +104,12 @@ class TraceView extends Component<TraceViewProps, St> {
   componentDidMount() {
     const nowIntervalID = setInterval(() => {
       this.setState({
-        now: DateTime.local()
+        now: DateTime.local(),
       });
     }, 16);
     this.setState({
       now: DateTime.local(),
-      nowIntervalID: nowIntervalID
+      nowIntervalID: nowIntervalID,
     });
   }
 
@@ -124,20 +124,22 @@ class TraceView extends Component<TraceViewProps, St> {
   render() {
     const { traces, width, traceState } = this.props;
     const { collapsedSpanIDs, hoveredSpanID } = traceState;
-    const flattened = _.flatten(traces.map(t => flatten(t, collapsedSpanIDs)));
+    const flattened = _.flatten(
+      traces.map((t) => flatten(t, collapsedSpanIDs))
+    );
 
     if (traces.length === 0) {
       return null;
     }
 
     const firstTS = (
-      _.minBy(traces, t => t.startedAt.toMillis()) || {
-        startedAt: DateTime.local()
+      _.minBy(traces, (t) => t.startedAt.toMillis()) || {
+        startedAt: DateTime.local(),
       }
     ).startedAt;
     const lastTS =
       _.max(
-        flattened.map(span =>
+        flattened.map((span) =>
           span.finishedAt
             ? span.finishedAt.toMillis()
             : DateTime.local().toMillis()
@@ -153,7 +155,7 @@ class TraceView extends Component<TraceViewProps, St> {
       <svg
         height={flattened.length * HEIGHT_PLUS_SPACE}
         style={{ width: "100%", minWidth: width }}
-        onScroll={evt => {
+        onScroll={(evt) => {
           console.log(evt);
         }}
       >
@@ -188,7 +190,7 @@ class TraceView extends Component<TraceViewProps, St> {
                   : () => {
                       this.handleAction({
                         type: "TOGGLE_COLLAPSED",
-                        spanID: span.id
+                        spanID: span.id,
                       });
                     }
               }
@@ -231,7 +233,7 @@ class TraceView extends Component<TraceViewProps, St> {
                         this.handleAction({
                           type: "HOVER_LOG_LINE",
                           spanID: span.id,
-                          logIdx
+                          logIdx,
                         })
                       }
                     />
