@@ -3,9 +3,8 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
-	"log"
 	"os"
+	"time"
 
 	"github.com/vilterp/stdout-trace/trace-format/format"
 	"github.com/vilterp/stdout-trace/tracer"
@@ -22,11 +21,18 @@ func main() {
 		evt := &tracer.TraceEvent{}
 		err := json.Unmarshal([]byte(text), evt)
 		if err != nil {
-			log.Fatalf("parse error line %d: %v", line, err)
+			//log.Printf("parse error line %d: %v", line, err)
+			if f.FirstSpanID == "" {
+				continue
+			}
+			evt = &tracer.TraceEvent{
+				TraceEvent: tracer.LogEvt,
+				SpanID:     f.FirstSpanID,
+				Timestamp:  time.Now(), // TODO: doesn't work when replaying an old one...
+				LogLine:    text,
+			}
 		}
 		f.Handle(evt)
 		line++
 	}
-	fmt.Println("really done?", scanner.Scan())
-	fmt.Println("last text", scanner.Text())
 }

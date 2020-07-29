@@ -8,6 +8,7 @@ import (
 )
 
 type Formatter struct {
+	FirstSpanID  string
 	spanChannels []string
 	openSpans    map[string]*tracer.Span
 }
@@ -19,6 +20,9 @@ func NewFormatter() *Formatter {
 }
 
 func (f *Formatter) Handle(evt *tracer.TraceEvent) {
+	if f.FirstSpanID == "" {
+		f.FirstSpanID = evt.SpanID
+	}
 	switch evt.TraceEvent {
 	case tracer.StartSpanEvt:
 		f.openSpans[evt.SpanID] = &tracer.Span{

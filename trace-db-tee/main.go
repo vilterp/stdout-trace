@@ -9,7 +9,6 @@ import (
 	"os"
 
 	_ "github.com/lib/pq"
-	"github.com/pkg/errors"
 	"github.com/vilterp/stdout-trace/tracer"
 )
 
@@ -52,7 +51,8 @@ func newProcessor(db *sql.DB) *processor {
 func (p *processor) process(b []byte) error {
 	evt := &tracer.TraceEvent{}
 	if err := json.Unmarshal(b, evt); err != nil {
-		return errors.Wrap(err, "unmarshalling event")
+		log.Println(string(b))
+		return nil
 	}
 	return p.updateDB(evt)
 }
@@ -64,6 +64,7 @@ func (p *processor) updateDB(evt *tracer.TraceEvent) error {
 			"INSERT INTO spans (id, parent_id, operation, started_at) VALUES ($1, $2, $3, $4)",
 			evt.SpanID, evt.ParentID, evt.Operation, evt.Timestamp,
 		)
+		fmt.Println("inserted span")
 		return err
 	case tracer.LogEvt:
 		_, err := p.conn.Exec(
