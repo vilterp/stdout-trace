@@ -14,7 +14,7 @@
     "d3-scale": "^3.2.1",
     "d3-scale-chromatic": "^1.5.0",
     "lodash": "^4.17.15",
-    "luxon": "^1.21.2",
+    "luxon": "^2.5.2",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-scripts": "3.2.0",
